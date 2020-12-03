@@ -7,17 +7,26 @@
         <h2>Register to use the website</h2>
         <form id="register" action="{{ url_for('register')}}" method="POST">
             Username : <input type="text" id="username" name="username" /> <br/>
-            Password : <input type="password" id="password" name="password" /> <br/>oki
+            Password : <input type="password" id="password" name="password" /> <br/>
+            First name: <input type="text" id="first_name" name="first_name"/> <br/>
+            Last name: <input type="text" id="last_name" name="last_name"/> <br/>
+            Street: <input type="text" id="street" name="street"/> <br/>
+            City: <input type="text" id="city" name="city"/> <br/>
+            Country: <input type="text" id="country" name="country"/> <br/>
+            Postal code: <input type="text" id="postal_code" name="postal_code"/> <br/>
+            Age: <input type="text" id="age" name="age"/> <br/>
+            PESEL: <input type="text" id="pesel" name="pesel"/> <br/>
             <input type="submit" id="submit" value="Register" />
         </form>
 
         <p>
             Returning user? <a href="{{ url_for('login')}}">Login</a>
         </p>
+
         <!-- Error messages -->
-        {% with messsages = get_flashed_messages() %}
+        {% with messages = get_flashed_messages() %}
             {% if messages %}
-                <ul class="flashes">
+                <ul class=flashes>
                     {% for message in messages %}
                         <li>{{ message }}</li>
                     {% endfor %}

@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, url_for, redirect, flash, session, abort
 from flask_sqlalchemy import sqlalchemy, SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+import re
 
 db_name = "users.db"
 
@@ -11,6 +12,7 @@ app.config['SQLALCHEMY_TRACK_NOTIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'au33UqFOJ64LE8iWl8CJyS7NYvwFegwF'
 
 db = SQLAlchemy(app)
+
 
 def create_test_users():
     test_users = {
@@ -31,6 +33,8 @@ def create_test_users():
 
         print(f"User account {k} has been created.")
 
+
+
 # execute to create a new DB
 def create_db():
     db.create_all()
@@ -43,8 +47,18 @@ class User(db.Model):
     username = db.Column(db.String(100), unique=True, nullable=False)
     pass_hash = db.Column(db.String(100), nullable=False)
 
-    def __repr__(self):
-        return '' % self.username
+    first_name = db.Column(db.String(100))
+    last_name = db.Column(db.String(100))
+
+    street = db.Column(db.String(100))
+    city = db.Column(db.String(100))
+    country = db.Column(db.String(100))
+    postal_code = db.Column(db.String(10))
+    age = db.Column(db.Integer)
+    pesel = db.Column(db.String(11))
+
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 # user registration
 @app.route("/register/", methods=["GET", "POST"])
@@ -53,31 +67,96 @@ def register():
         # get the data from HTML form
         username = request.form['username']
         password = request.form['password']
+        first_name = request.form['first_name']
+        last_name = request.form['last_name']
+        street = request.form['street']
+        city = request.form['city']
+        country = request.form['country']
+        postal_code = request.form['postal_code']
+        age = request.form['age']
+        pesel = request.form['pesel']
 
-        # check form data
-        if not (username and password):
-            flash("Username or Password cannot be empty")
-            # redirect back
-            return redirect(url_for('register'))
+        form_correct = True
+
+        # check if form not empty
+        if not (
+            username and password and 
+            first_name and last_name and 
+            street and city and country 
+            and postal_code and age and pesel):
+                flash("All the values need to be filled in")
+                form_correct = False
         else:
             username = username.strip()
             password = password.strip()
+            first_name = first_name.strip()
+            last_name = last_name.strip()
+            street = street.strip()
+            city = city.strip()
+            country = country.strip()
+            postal_code = postal_code.strip()
+            age = age.strip()
+            pesel = pesel.strip()
 
-        # hash the password
-        hashed_pwd = generate_password_hash(password, 'sha256')
-        #print("dupa")
-        # create the User from model and add to database
-        new_user = User(username=username, pass_hash=hashed_pwd)
-        db.session.add(new_user)
+        # validations
+        post_code_re = re.compile("[0-9]{2}-[0-9]{3}")
+
+        if not first_name.istitle():
+            form_correct = False
+            flash("First name needs to be capitalized")
+        if not last_name.istitle():
+            form_correct = False
+            flash("Last name needs to be capitalized")
+        if not city.istitle():
+            form_correct = False
+            flash("City needs to be capitalized")
+        if not country.istitle():
+            form_correct = False
+            flash("Country needs to be capitalized")
+
+        if not post_code_re.search(postal_code):
+            form_correct = False
+            flash("Your postal code is invalid, use the xx-xxx format")
 
         try:
-            db.session.commit()
-        except sqlalchemy.exc.IntegrityError:
-            flash(f"Username {username} is not available.")
-            return redirect(url_for('register'))
+            if not (int(age) > 10 and int(age) < 124):
+                form_correct = False
+                flash("Wrong age")
+        except ValueError:
+            form_correct = False
+            flash("Age must be a number")
 
-        flash("User account has been created.")
-        return redirect(url_for("login"))
+        if not (len(pesel) == 11):
+            form_correct = False
+            flash("Wrong PESEL length")
+
+        if not form_correct:
+            return redirect(url_for("register"))
+
+        if form_correct:
+
+            # hash the password
+            hashed_pwd = generate_password_hash(password, 'sha256')
+            # create the User from model and add to database
+            new_user = User(username=username, 
+                            pass_hash=hashed_pwd,
+                            first_name=first_name,
+                            last_name=last_name,
+                            street=street,
+                            city=city,
+                            country=country,
+                            postal_code=postal_code,
+                            age=age,
+                            pesel=pesel)
+            db.session.add(new_user)
+
+            try:
+                db.session.commit()
+            except sqlalchemy.exc.IntegrityError:
+                flash(f"Username {username} is not available.")
+
+            flash("User account has been created.")
+            return redirect(url_for("login"))
 
     return render_template("register.html")
 
@@ -110,13 +189,30 @@ def login():
     return render_template("login.html")
 
 # logged in user homepage
+
+
 @app.route("/user/<username>")
 def user_home(username):
     # check if the session cookie is valid
     if not session.get(username):
         abort(401)
 
-    return render_template("user_home.html", username=username)
+    user = User.query.filter_by(username=username).first()
+    hidden = ["pass_hash", "uid"]
+    translator = {
+        "username": "Username",
+        "first_name": "First name",
+        "last_name": "Last name",
+        "street": "Street",
+        "city": "City",
+        "country": "Country",
+        "postal_code": "Postal code",
+        "age": "Age",
+        "pesel": "PESEL"
+    }
+
+    return render_template("user_home.html", username=username, user=user, 
+        hidden=hidden, tr=translator)
 
 # logout current user
 @app.route("/logout/<username>")
@@ -126,6 +222,7 @@ def logout(username):
     flash("sucessfully logged out.")
     # redirect back to login page
     return redirect(url_for('login'))
+
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
