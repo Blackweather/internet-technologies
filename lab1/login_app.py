@@ -119,7 +119,7 @@ def register():
             flash("Your postal code is invalid, use the xx-xxx format")
 
         try:
-            if not (int(age) > 10 and int(age) < 124):
+            if not (10 < int(age) < 124):
                 form_correct = False
                 flash("Wrong age")
         except ValueError:
@@ -133,30 +133,28 @@ def register():
         if not form_correct:
             return redirect(url_for("register"))
 
-        if form_correct:
+        # hash the password
+        hashed_pwd = generate_password_hash(password, 'sha256')
+        # create the User from model and add to database
+        new_user = User(username=username, 
+                        pass_hash=hashed_pwd,
+                        first_name=first_name,
+                        last_name=last_name,
+                        street=street,
+                        city=city,
+                        country=country,
+                        postal_code=postal_code,
+                        age=age,
+                        pesel=pesel)
+        db.session.add(new_user)
 
-            # hash the password
-            hashed_pwd = generate_password_hash(password, 'sha256')
-            # create the User from model and add to database
-            new_user = User(username=username, 
-                            pass_hash=hashed_pwd,
-                            first_name=first_name,
-                            last_name=last_name,
-                            street=street,
-                            city=city,
-                            country=country,
-                            postal_code=postal_code,
-                            age=age,
-                            pesel=pesel)
-            db.session.add(new_user)
+        try:
+            db.session.commit()
+        except sqlalchemy.exc.IntegrityError:
+            flash(f"Username {username} is not available.")
 
-            try:
-                db.session.commit()
-            except sqlalchemy.exc.IntegrityError:
-                flash(f"Username {username} is not available.")
-
-            flash("User account has been created.")
-            return redirect(url_for("login"))
+        flash("User account has been created.")
+        return redirect(url_for("login"))
 
     return render_template("register.html")
 
