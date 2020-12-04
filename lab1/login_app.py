@@ -2,6 +2,9 @@ from flask import Flask, render_template, request, url_for, redirect, flash, ses
 from flask_sqlalchemy import sqlalchemy, SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 import re
+import smtplib
+from hashlib import sha256
+import traceback
 
 db_name = "users.db"
 
@@ -17,8 +20,8 @@ db = SQLAlchemy(app)
 def create_test_users():
     test_users = {
         "adam": "abcabc",
-        "bart": "testtest",
-        "jack": "hello"
+        "filip": "filip",
+        "karol": "karol"
     }
 
     for k in test_users.keys():
@@ -46,6 +49,7 @@ class User(db.Model):
     uid = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
     pass_hash = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(50))
 
     first_name = db.Column(db.String(100))
     last_name = db.Column(db.String(100))
@@ -56,6 +60,7 @@ class User(db.Model):
     postal_code = db.Column(db.String(10))
     age = db.Column(db.Integer)
     pesel = db.Column(db.String(11))
+    activation_hash = db.Column(db.String(32))
 
     def as_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
@@ -67,6 +72,7 @@ def register():
         # get the data from HTML form
         username = request.form['username']
         password = request.form['password']
+        email = request.form['email']
         first_name = request.form['first_name']
         last_name = request.form['last_name']
         street = request.form['street']
@@ -81,14 +87,16 @@ def register():
         # check if form not empty
         if not (
             username and password and 
-            first_name and last_name and 
-            street and city and country 
-            and postal_code and age and pesel):
+            email and first_name and 
+            last_name and street and 
+            city and country and postal_code
+            and age and pesel):
                 flash("All the values need to be filled in")
                 form_correct = False
         else:
             username = username.strip()
             password = password.strip()
+            email = email.strip()
             first_name = first_name.strip()
             last_name = last_name.strip()
             street = street.strip()
@@ -135,9 +143,11 @@ def register():
 
         # hash the password
         hashed_pwd = generate_password_hash(password, 'sha256')
+        activation_hash = sha256(str(pesel).encode('utf-8')).hexdigest()
         # create the User from model and add to database
         new_user = User(username=username, 
                         pass_hash=hashed_pwd,
+                        email=email,
                         first_name=first_name,
                         last_name=last_name,
                         street=street,
@@ -145,13 +155,35 @@ def register():
                         country=country,
                         postal_code=postal_code,
                         age=age,
-                        pesel=pesel)
+                        pesel=pesel,
+                        activation_hash=activation_hash)
         db.session.add(new_user)
 
         try:
             db.session.commit()
         except sqlalchemy.exc.IntegrityError:
             flash(f"Username {username} is not available.")
+
+        # emacs sendmail
+        sender = 'tt2248893@gmail.com'
+        receivers = email
+
+        message ="""From: From mysuperwebsite <tt2248893@gmail.com>
+        To: Our beautiful user <{0}>
+        Subject: SMTP e-mail test
+
+        {1}
+        """.format(email,f"{request.host_url[:-1]}{url_for('activate', username=username)}?hash={activation_hash}")
+
+        try:
+            smtpObj = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+            smtpObj.ehlo()
+            smtpObj.login(sender, "$tT2248894")
+            smtpObj.sendmail(sender, receivers, message)
+            smtpObj.quit()
+        except smtplib.SMTPException:
+            traceback.print_exc()
+            print("Unable to send email")
 
         flash("User account has been created.")
         return redirect(url_for("login"))
@@ -178,7 +210,9 @@ def login():
         user = User.query.filter_by(username=username).first()
 
         # check if the provided credentials are valid
-        if user and check_password_hash(user.pass_hash, password):
+        if user.activation_hash != None and user.activation_hash != "":
+            flash("Your account is not activated yet")
+        elif user and check_password_hash(user.pass_hash, password):
             session[username] = True
             return redirect(url_for('user_home', username=username))
         else:
@@ -187,8 +221,6 @@ def login():
     return render_template("login.html")
 
 # logged in user homepage
-
-
 @app.route("/user/<username>")
 def user_home(username):
     # check if the session cookie is valid
@@ -196,9 +228,10 @@ def user_home(username):
         abort(401)
 
     user = User.query.filter_by(username=username).first()
-    hidden = ["pass_hash", "uid"]
+    hidden = ["pass_hash", "uid", "activation_hash"]
     translator = {
         "username": "Username",
+        "email": "Email",
         "first_name": "First name",
         "last_name": "Last name",
         "street": "Street",
@@ -221,6 +254,21 @@ def logout(username):
     # redirect back to login page
     return redirect(url_for('login'))
 
+# http://localhost:5000/user/activate/ala?hash=51294ec4f750463d3f49d5435801d8f86c6b3baed97e953426ae4a1092fd4a6c
+@app.route("/user/activate/<username>")
+def activate(username):
+    user = User.query.filter_by(username=username).first()
+    activation_hash = request.args.to_dict()['hash']
+
+    if user and user.activation_hash == activation_hash:
+        user.activation_hash = ""
+        db.session.commit()
+
+        flash("User activated!")
+    else:
+        flash("Did not activate")
+
+    return redirect(url_for('login'))
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
