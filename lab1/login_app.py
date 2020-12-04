@@ -254,7 +254,6 @@ def logout(username):
     # redirect back to login page
     return redirect(url_for('login'))
 
-# http://localhost:5000/user/activate/ala?hash=51294ec4f750463d3f49d5435801d8f86c6b3baed97e953426ae4a1092fd4a6c
 @app.route("/user/activate/<username>")
 def activate(username):
     user = User.query.filter_by(username=username).first()
