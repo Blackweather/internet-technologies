@@ -210,9 +210,11 @@ def login():
         user = User.query.filter_by(username=username).first()
 
         # check if the provided credentials are valid
-        if user.activation_hash != None and user.activation_hash != "":
+        if user == None:
+            flash("Access denied")
+        elif user.activation_hash != None and user.activation_hash != "":
             flash("Your account is not activated yet")
-        elif user and check_password_hash(user.pass_hash, password):
+        elif check_password_hash(user.pass_hash, password):
             session[username] = True
             return redirect(url_for('user_home', username=username))
         else:
