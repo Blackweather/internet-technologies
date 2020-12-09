@@ -230,9 +230,8 @@ def user_home(username):
         abort(401)
 
     user = User.query.filter_by(username=username).first()
-    hidden = ["pass_hash", "uid", "activation_hash"]
+    hidden = ["pass_hash", "uid", "activation_hash", "username"]
     translator = {
-        "username": "Username",
         "email": "Email",
         "first_name": "First name",
         "last_name": "Last name",
@@ -252,7 +251,7 @@ def user_home(username):
 def logout(username):
     # delete the session cookie
     session.pop(username, None)
-    flash("sucessfully logged out.")
+    flash("successfully logged out.")
     # redirect back to login page
     return redirect(url_for('login'))
 

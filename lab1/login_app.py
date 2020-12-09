@@ -252,7 +252,7 @@ def user_home(username):
 def logout(username):
     # delete the session cookie
     session.pop(username, None)
-    flash("sucessfully logged out.")
+    flash("successfully logged out.")
     # redirect back to login page
     return redirect(url_for('login'))
 
