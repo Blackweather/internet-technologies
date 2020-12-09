@@ -2,27 +2,46 @@
 <html>
     <head>
         <title>Login</title>
+        <link rel="stylesheet" href="//stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
     </head>
     <body>
-        <h2>Login to view content</h2>
-        <form id="login" action="{{ url_for('login')}}" method="POST">
-            Username: <input type="text" id="username" name="username" /> <br/>
-            Password: <input type="password" id="password" name="password" />
-            <input type="submit" id="submit" value="Login" />
-        </form>
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-6">
 
-        <p>
-            New user? <a href="{{ url_for('register')}}">Register</a>
-        </p>
-
+                    <h2>Login to view content</h2>
+                    <form id="login" class="form-horizontal" action="{{ url_for('login')}}" method="POST">
+                        <div class="input-group">
+                            <label for="username" class="control-label col-4">
+                                Username
+                            </label>
+                            <input type="text" id="username" name="username" placeholder="Username" /> <br/>
+                        </div>
+                        <div class="input-group">
+                            <label for="password" class="control-label col-4">
+                                Password
+                            </label>
+                            <input type="password" id="password" name="password" placeholder="Password"/>
+                        </div>
+                        <button class="btn btn-primary" value="submit">Log in</button>
+                    </form>
+                    
+                    <p>
+                        New user? <a href="{{ url_for('register')}}">Register</a>
+                    </p>
+                </div>
+            </div>
+        </div>
         <!-- Error messages -->
         {% with messages = get_flashed_messages() %}
             {% if messages %}
+            <div class="alert alert-danger">
                 <ul class=flashes>
                     {% for message in messages %}
-                        <li>{{ message }}</li>
+                    <li>{{ message }}</li>
                     {% endfor %}
                 </ul>
+            </div>
             {% endif %}
         {% endwith %}
     </body>
