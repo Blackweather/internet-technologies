@@ -222,16 +222,26 @@ def login():
 
     return render_template("login.html")
 
+
 # logged in user homepage
-@app.route("/user/<username>")
+@app.route("/user/<username>", methods=['GET', 'POST'])
 def user_home(username):
     # check if the session cookie is valid
     if not session.get(username):
         abort(401)
 
+    search_type = ""
+    value = ""
+
+    if request.method == "POST":
+        print(request.form['search_type'], request.form['value'])
+        search_type = request.form['search_type']
+        value = request.form['value']
+
     user = User.query.filter_by(username=username).first()
-    hidden = ["pass_hash", "uid", "activation_hash", "username"]
+    hidden = ["pass_hash", "uid", "activation_hash"]
     translator = {
+        "username": "Username",
         "email": "Email",
         "first_name": "First name",
         "last_name": "Last name",
@@ -243,8 +253,31 @@ def user_home(username):
         "pesel": "PESEL"
     }
 
+    if search_type == "username":
+        users = User.query.filter_by(username=value).all()
+    elif search_type == "email":
+        users = User.query.filter_by(email=value).all()
+    elif search_type == "first_name":
+        users = User.query.filter_by(first_name=value).all()
+    elif search_type == "last_name":
+        users = User.query.filter_by(last_name=value).all()
+    elif search_type == "street":
+        users = User.query.filter_by(street=value).all()
+    elif search_type == "city":
+        users = User.query.filter_by(city=value).all()
+    elif search_type == "country":
+        users = User.query.filter_by(country=value).all()
+    elif search_type == "postal_code":
+        users = User.query.filter_by(postal_code=value).all()
+    elif search_type == "age":
+        users = User.query.filter_by(age=value).all()
+    elif search_type == "pesel":
+        users = User.query.filter_by(pesel=value).all()
+    else:
+        users = User.query.all()
+        
     return render_template("user_home.html", username=username, user=user, 
-        hidden=hidden, tr=translator)
+        hidden=hidden, tr=translator, user_filtered=users)
 
 # logout current user
 @app.route("/logout/<username>")
