@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>JQuery AJAX</title>
+    <script src="https://unpkg.com/jquery/dist/jquery.min.js"></script>
+</head>
+
+<body>
+    <form id="dataForm" method="POST">
+        City: <input id="city" type="text" />
+        <select id="filter_type">
+            <option value="all" selected>ALL</option>
+            <option value="picked">Picked city</option>
+        </select>
+        <input type="submit" />
+    </form>
+    <table id="records_table" border="1 solid black"></table>
+
+    <script type="text/javascript">
+        // magic number 165391 + 160852 = GMT+1
+        // trzy miasta Warsaw,Zurich,Oslo,Windhoek
+        $("#dataForm").submit(
+            function (e) {
+                e.preventDefault();
+                $('#records_table tr').remove();
+                $('<tr>').html("<th>City</th><th>Country</th><th>Temperature</th><th>Pressure</th><th>Weather</th>").appendTo('#records_table');
+
+                var cities = ["Oslo", "Warsaw", "Windhoek", "Zurich"];
+
+                if ($("#filter_type").val() == "all") {
+                    cities.forEach(request);
+                } else if ($("#filter_type").val() == "picked") {
+                    // get the city from form
+                    var picked_value = $("#city").val();
+                    console.log(picked_value)
+                    // check if city is allowed
+                    if (cities.includes(picked_value)) {
+                        request(picked_value);
+                    } else {
+                        alert("The city is not on the city list, please pick Oslo/Warsaw/Windhoek,Zurich");
+                    }
+                }
+            }
+        );
+
+        function request(city) {
+            $.ajax({
+                url: "http://api.weatherstack.com/current?access_key=b35f3d1c4215fc3f10c7d5cf31da3811",
+                data: {
+                    query: city
+                },
+                dataType: 'json'
+            }).done((data) => {
+                console.log(data);
+                if (data) {
+                    $('<tr>').html("<td>" + data.location.name + "</td><td>" + data.location.country + "</td><td>" + data.current.temperature + "</td><td>" + data.current.pressure + "</td><td><img src='" + data.current.weather_icons[0] + "'/></td>").appendTo('#records_table')
+                }
+            }).fail(() => {
+                alert("data fetch error");
+            }).always(() => {
+                console.log("done");
+            })
+        }
+    </script>
+</body>
+
+</html>
