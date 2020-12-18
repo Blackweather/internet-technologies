@@ -29,38 +29,59 @@
                 var cities = ["Oslo", "Warsaw", "Windhoek", "Zurich"];
 
                 if ($("#filter_type").val() == "all") {
-                    cities.forEach(request);
+                    requests = cities.map(return_request);
+					console.log(requests);
+					$.when.apply(undefined, requests).then(function() {
+					    comp = function(a, b) {
+							if(a.location.name < b.location.name)
+								return -1;
+							if(a.location.name > b.location.name)
+								return 1;
+							return 0;
+						}				
+						var objects = Array(arguments);
+						objects = objects.sort(comp);
+						$.each(arguments, function(ind, val) { append(val[0]); });
+					});
                 } else if ($("#filter_type").val() == "picked") {
                     // get the city from form
                     var picked_value = $("#city").val();
                     console.log(picked_value)
                     // check if city is allowed
                     if (cities.includes(picked_value)) {
-                        request(picked_value);
+                        request_once(picked_value);
                     } else {
-                        alert("The city is not on the city list, please pick Oslo/Warsaw/Windhoek,Zurich");
+                        alert("The city is not on the city list, please pick Oslo/Warsaw/Windhoek/Zurich");
                     }
                 }
             }
         );
-
-        function request(city) {
-            $.ajax({
+		
+		function return_request(city) {
+            return $.ajax({
                 url: "http://api.weatherstack.com/current?access_key=b35f3d1c4215fc3f10c7d5cf31da3811",
                 data: {
                     query: city
                 },
                 dataType: 'json'
-            }).done((data) => {
-                console.log(data);
-                if (data) {
-                    $('<tr>').html("<td>" + data.location.name + "</td><td>" + data.location.country + "</td><td>" + data.current.temperature + "</td><td>" + data.current.pressure + "</td><td><img src='" + data.current.weather_icons[0] + "'/></td>").appendTo('#records_table')
-                }
             }).fail(() => {
                 alert("data fetch error");
             }).always(() => {
                 console.log("done");
-            })
+            });
+        }
+		
+		function append(data) {
+			$('<tr>').html("<td>" + data.location.name + "</td><td>" + data.location.country + "</td><td>" + data.current.temperature + "</td><td>" + data.current.pressure + "</td><td><img src='" + data.current.weather_icons[0] + "'/></td>").appendTo('#records_table');
+		}
+
+        function request_once(city) {
+            return_request(city).done((data) => {
+                console.log(data);
+                if (data) {
+                    append(data);
+                }
+            });
         }
     </script>
 </body>
