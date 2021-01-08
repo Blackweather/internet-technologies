@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Input parsing</title>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="https://unpkg.com/bootstrap/dist/css/bootstrap.min.css" />
+        <script src="https://unpkg.com/angular/angular.min.js"></script>
+        <script src= "inputs.js"></script>
+    </head>
+    <body ng-app="PeselApp" ng-controller="PeselController">
+        <div class="container">
+            <div class="col-sm-12">
+                <span><input ng-model="pesel"/></span>
+                <span><input name="data" placeholder="{{ result() }}"/></span>
+            </div>
+        </div>
+    </body>
+</html>

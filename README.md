@@ -9,3 +9,6 @@ The assignment was to add bootstrap to the application created in the previous a
 
 ## lab3
 The assignment was to fetch data from weatherstack api into a table using JQuery and AJAX
+
+## lab4
+The assignment was to create a simple +/- calculator using AngularJS and a "form" which gets PESEL data from one field and parses it to another field into date of birth.

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>AngularJS Calculator</title>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="https://unpkg.com/bootstrap/dist/css/bootstrap.min.css" />
+        <script src="https://unpkg.com/angular/angular.min.js"></script>
+        <script src= "calc.js"></script>
+    </head>
+    <body ng-app="CalculatorApp" ng-controller="CalculatorController">
+        <div class="container">
+            <div class="col-sm-12">
+                <span><input type="number" ng-model="a"/></span>
+                <span><input type="number" ng-model="b"/></span>
+                <span><select ng-model="operator">
+                        <option>+</option>
+                        <option>-</option>
+                    </select>
+                </span>
+                <span>{{ result() }}</span>
+            </div>
+        </div>
+    </body>
+</html>
