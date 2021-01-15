@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>WebCaching lab</title>
+  <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js'></script>
+  <script src="static/js/cache.js"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-blue.min.css">
+  <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+</head>
+
+<body>
+  <p>
+  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+    <input type="text" id="username" class="mdl-textfield__input" name="username" />
+    <label class="mdl-textfield__label" for="username" id="usernamelabel">Username</label>
+  </div>
+  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+    <input type="password" id="password" class="mdl-textfield__input" name="password" />
+    <label class="mdl-textfield__label" for="password" id="passwordlabel">Password</label>
+  </div>
+  <input type="button" id="save"
+    class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" value="Zapisz"
+    name="save" />
+  <input type="button" id="load"
+    class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" value="Wczytaj"
+    name="load" />
+  </p>
+  <p>
+  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+    <input type="text" id="which_fibonacci" class="mdl-textfield__input" name="which_fibonacci" />
+    <label class="mdl-textfield__label" for="which_fibonacci">Wyraz do policzenia</label>
+  </div>
+  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+    <input type="text" id="loaded_fibonacci" class="mdl-textfield__input" disabled name="loaded_fibonacci" />
+  </div>
+  <input type="button" id="count_fibonacci"
+    class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+    value="Policz Fibonacziego" />
+  <input type="button" id="load_fibonacci"
+    class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+    value="Wczytaj Fibonacziego" />
+  </p>
+</body>
+
+</html>
