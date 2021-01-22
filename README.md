@@ -15,3 +15,6 @@ The assignment was to create a simple +/- calculator using AngularJS and a "form
 
 ## lab5
 The assignment was to cache data using local storage
+
+## lab6
+The assignment was to implement basic web switching using round robin and weighted methods.
